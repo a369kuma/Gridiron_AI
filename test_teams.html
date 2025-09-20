@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teams Test - Gridiron AI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .team-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .team {
+            background: #667eea;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .error {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .success {
+            background: #c6f6d5;
+            color: #2f855a;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #5a67d8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏈 Gridiron AI - Teams Test</h1>
+        <p>This page tests the teams API endpoint to verify all 32 NFL teams are loaded correctly.</p>
+        
+        <button onclick="loadTeams()">Load Teams</button>
+        
+        <div id="status"></div>
+        <div id="teams"></div>
+    </div>
+
+    <script>
+        async function loadTeams() {
+            const statusDiv = document.getElementById('status');
+            const teamsDiv = document.getElementById('teams');
+            
+            statusDiv.innerHTML = '<p>Loading teams...</p>';
+            teamsDiv.innerHTML = '';
+            
+            try {
+                const response = await fetch('http://localhost:5001/api/teams');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                const teams = data.teams;
+                
+                console.log('Teams loaded:', teams);
+                console.log('Number of teams:', teams.length);
+                
+                if (teams.length === 32) {
+                    statusDiv.innerHTML = '<div class="success">✅ Successfully loaded all 32 NFL teams!</div>';
+                } else {
+                    statusDiv.innerHTML = `<div class="error">⚠️ Warning: Expected 32 teams, got ${teams.length}</div>`;
+                }
+                
+                // Display teams
+                teamsDiv.innerHTML = '<h3>Teams List:</h3>';
+                const teamGrid = document.createElement('div');
+                teamGrid.className = 'team-list';
+                
+                teams.forEach(team => {
+                    const teamDiv = document.createElement('div');
+                    teamDiv.className = 'team';
+                    teamDiv.textContent = team;
+                    teamGrid.appendChild(teamDiv);
+                });
+                
+                teamsDiv.appendChild(teamGrid);
+                
+            } catch (error) {
+                console.error('Error loading teams:', error);
+                statusDiv.innerHTML = `<div class="error">❌ Error loading teams: ${error.message}</div>`;
+                
+                // Show fallback teams
+                const fallbackTeams = [
+                    'NE', 'KC', 'BUF', 'MIA', 'NYJ', 'PIT', 'BAL', 'CLE', 'CIN', 'HOU',
+                    'IND', 'TEN', 'JAX', 'DEN', 'LV', 'LAC', 'DAL', 'PHI', 'WAS', 'NYG',
+                    'GB', 'MIN', 'CHI', 'DET', 'TB', 'NO', 'ATL', 'CAR', 'SF', 'SEA', 'LAR', 'ARI'
+                ];
+                
+                teamsDiv.innerHTML = '<h3>Fallback Teams (API not available):</h3>';
+                const teamGrid = document.createElement('div');
+                teamGrid.className = 'team-list';
+                
+                fallbackTeams.forEach(team => {
+                    const teamDiv = document.createElement('div');
+                    teamDiv.className = 'team';
+                    teamDiv.textContent = team;
+                    teamGrid.appendChild(teamDiv);
+                });
+                
+                teamsDiv.appendChild(teamGrid);
+            }
+        }
+        
+        // Auto-load teams on page load
+        window.onload = loadTeams;
+    </script>
+</body>
+</html>

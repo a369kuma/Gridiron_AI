@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gridiron AI - NFL Prediction Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+        
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card h2 {
+            color: #4a5568;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .prediction-result {
+            background: #f7fafc;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .prediction-result h3 {
+            color: #4a5568;
+            margin-bottom: 15px;
+        }
+        
+        .prediction-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .stat-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+        
+        .recent-predictions {
+            grid-column: 1 / -1;
+        }
+        
+        .prediction-item {
+            background: #f7fafc;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #48bb78;
+        }
+        
+        .prediction-item h4 {
+            color: #4a5568;
+            margin-bottom: 5px;
+        }
+        
+        .prediction-item p {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #718096;
+        }
+        
+        .error {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        
+        .success {
+            background: #c6f6d5;
+            color: #2f855a;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏈 Gridiron AI</h1>
+            <p>Advanced NFL Game Outcome Predictions</p>
+        </div>
+        
+        <div class="dashboard">
+            <div class="card">
+                <h2>Game Prediction</h2>
+                <form id="predictionForm">
+                    <div class="form-group">
+                        <label for="homeTeam">Home Team</label>
+                        <select id="homeTeam" required>
+                            <option value="">Select Home Team</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="awayTeam">Away Team</label>
+                        <select id="awayTeam" required>
+                            <option value="">Select Away Team</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="temperature">Temperature (°F)</label>
+                        <input type="number" id="temperature" value="50" min="-20" max="120">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="windSpeed">Wind Speed (mph)</label>
+                        <input type="number" id="windSpeed" value="5" min="0" max="50">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="humidity">Humidity (%)</label>
+                        <input type="number" id="humidity" value="50" min="0" max="100">
+                    </div>
+                    
+                    <button type="submit" class="btn" id="predictBtn">Predict Game Outcome</button>
+                </form>
+                
+                <div id="predictionResult" style="display: none;"></div>
+            </div>
+            
+            <div class="card">
+                <h2>Model Statistics</h2>
+                <div id="modelStats">
+                    <div class="loading">Loading model statistics...</div>
+                </div>
+                
+                <button class="btn" id="retrainBtn" style="margin-top: 20px;">Retrain Model</button>
+            </div>
+            
+            <div class="card recent-predictions">
+                <h2>Recent Predictions</h2>
+                <div id="recentPredictions">
+                    <div class="loading">Loading recent predictions...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Global variables
+        let teams = [];
+        
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTeams();
+            loadModelStats();
+            loadRecentPredictions();
+            
+            // Event listeners
+            document.getElementById('predictionForm').addEventListener('submit', handlePrediction);
+            document.getElementById('retrainBtn').addEventListener('click', retrainModel);
+        });
+        
+        // Load teams from API
+        async function loadTeams() {
+            try {
+                const response = await fetch('/api/teams');
+                const data = await response.json();
+                teams = data.teams;
+                
+                const homeSelect = document.getElementById('homeTeam');
+                const awaySelect = document.getElementById('awayTeam');
+                
+                teams.forEach(team => {
+                    const option1 = new Option(team, team);
+                    const option2 = new Option(team, team);
+                    homeSelect.add(option1);
+                    awaySelect.add(option2);
+                });
+            } catch (error) {
+                console.error('Error loading teams:', error);
+            }
+        }
+        
+        // Handle prediction form submission
+        async function handlePrediction(event) {
+            event.preventDefault();
+            
+            const homeTeam = document.getElementById('homeTeam').value;
+            const awayTeam = document.getElementById('awayTeam').value;
+            const temperature = parseFloat(document.getElementById('temperature').value);
+            const windSpeed = parseFloat(document.getElementById('windSpeed').value);
+            const humidity = parseFloat(document.getElementById('humidity').value);
+            
+            if (homeTeam === awayTeam) {
+                showError('Home and away teams must be different');
+                return;
+            }
+            
+            const predictBtn = document.getElementById('predictBtn');
+            predictBtn.disabled = true;
+            predictBtn.textContent = 'Predicting...';
+            
+            try {
+                // Get team stats (using default stats for demo)
+                const homeStats = await getTeamStats(homeTeam);
+                const awayStats = await getTeamStats(awayTeam);
+                
+                const predictionData = {
+                    home_team: homeTeam,
+                    away_team: awayTeam,
+                    home_stats: homeStats,
+                    away_stats: awayStats,
+                    weather: {
+                        temp: temperature,
+                        wind: windSpeed,
+                        humidity: humidity
+                    },
+                    rest_days: {
+                        home: 7,
+                        away: 7
+                    }
+                };
+                
+                const response = await fetch('/api/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(predictionData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    displayPrediction(result.prediction);
+                    loadRecentPredictions(); // Refresh recent predictions
+                } else {
+                    showError(result.error || 'Prediction failed');
+                }
+            } catch (error) {
+                console.error('Prediction error:', error);
+                showError('Failed to make prediction');
+            } finally {
+                predictBtn.disabled = false;
+                predictBtn.textContent = 'Predict Game Outcome';
+            }
+        }
+        
+        // Get team stats (simplified for demo)
+        async function getTeamStats(team) {
+            try {
+                const response = await fetch(`/api/team/${team}/stats`);
+                const data = await response.json();
+                return data.stats;
+            } catch (error) {
+                console.error('Error getting team stats:', error);
+                // Return default stats
+                return {
+                    win_pct: 0.5,
+                    off_rating: 100.0,
+                    def_rating: 100.0,
+                    avg_points: 25.0,
+                    avg_yards: 350.0,
+                    turnover_diff: 0.0,
+                    injuries: 3,
+                    momentum: 0.0
+                };
+            }
+        }
+        
+        // Display prediction result
+        function displayPrediction(prediction) {
+            const resultDiv = document.getElementById('predictionResult');
+            resultDiv.style.display = 'block';
+            
+            const winner = prediction.predicted_winner === 'home' ? 
+                document.getElementById('homeTeam').value : 
+                document.getElementById('awayTeam').value;
+            
+            resultDiv.innerHTML = `
+                <div class="prediction-result">
+                    <h3>Prediction Result</h3>
+                    <div class="prediction-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">${(prediction.home_win_probability * 100).toFixed(1)}%</div>
+                            <div class="stat-label">Home Win Probability</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${(prediction.away_win_probability * 100).toFixed(1)}%</div>
+                            <div class="stat-label">Away Win Probability</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${winner}</div>
+                            <div class="stat-label">Predicted Winner</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${(prediction.confidence * 100).toFixed(1)}%</div>
+                            <div class="stat-label">Confidence</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Load model statistics
+        async function loadModelStats() {
+            try {
+                const response = await fetch('/api/model/accuracy');
+                const data = await response.json();
+                
+                const statsDiv = document.getElementById('modelStats');
+                
+                if (data.accuracy !== null) {
+                    statsDiv.innerHTML = `
+                        <div class="prediction-stats">
+                            <div class="stat-item">
+                                <div class="stat-value">${(data.accuracy * 100).toFixed(1)}%</div>
+                                <div class="stat-label">Accuracy</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">${data.correct_predictions}</div>
+                                <div class="stat-label">Correct Predictions</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">${data.total_predictions}</div>
+                                <div class="stat-label">Total Predictions</div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    statsDiv.innerHTML = '<div class="loading">No predictions available yet</div>';
+                }
+            } catch (error) {
+                console.error('Error loading model stats:', error);
+                document.getElementById('modelStats').innerHTML = '<div class="error">Failed to load model statistics</div>';
+            }
+        }
+        
+        // Load recent predictions
+        async function loadRecentPredictions() {
+            try {
+                const response = await fetch('/api/predictions?limit=5');
+                const data = await response.json();
+                
+                const predictionsDiv = document.getElementById('recentPredictions');
+                
+                if (data.predictions.length > 0) {
+                    predictionsDiv.innerHTML = data.predictions.map(pred => `
+                        <div class="prediction-item">
+                            <h4>${pred.home_team} vs ${pred.away_team}</h4>
+                            <p>Predicted Winner: ${pred.predicted_winner} (${(pred.confidence * 100).toFixed(1)}% confidence)</p>
+                            <p>Home: ${(pred.home_win_probability * 100).toFixed(1)}% | Away: ${(pred.away_win_probability * 100).toFixed(1)}%</p>
+                        </div>
+                    `).join('');
+                } else {
+                    predictionsDiv.innerHTML = '<div class="loading">No predictions available yet</div>';
+                }
+            } catch (error) {
+                console.error('Error loading recent predictions:', error);
+                document.getElementById('recentPredictions').innerHTML = '<div class="error">Failed to load recent predictions</div>';
+            }
+        }
+        
+        // Retrain model
+        async function retrainModel() {
+            const retrainBtn = document.getElementById('retrainBtn');
+            retrainBtn.disabled = true;
+            retrainBtn.textContent = 'Retraining...';
+            
+            try {
+                const response = await fetch('/api/model/retrain', {
+                    method: 'POST'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showSuccess('Model retrained successfully!');
+                    loadModelStats();
+                } else {
+                    showError(result.error || 'Retraining failed');
+                }
+            } catch (error) {
+                console.error('Retraining error:', error);
+                showError('Failed to retrain model');
+            } finally {
+                retrainBtn.disabled = false;
+                retrainBtn.textContent = 'Retrain Model';
+            }
+        }
+        
+        // Utility functions
+        function showError(message) {
+            const resultDiv = document.getElementById('predictionResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `<div class="error">${message}</div>`;
+        }
+        
+        function showSuccess(message) {
+            const resultDiv = document.getElementById('predictionResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `<div class="success">${message}</div>`;
+        }
+    </script>
+</body>
+</html>
